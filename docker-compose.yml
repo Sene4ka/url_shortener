@@ -1,0 +1,76 @@
+services:
+  # Postgres DB
+  postgres:
+    image: postgres:15-alpine
+    container_name: shortener_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_NAME}
+    ports:
+      - "5432:${POSTGRES_PORT}"
+    volumes:
+      - shortener_postgres_data:/var/lib/postgresql/data
+      - ./migrations/001-init.up.sql:/docker-entrypoint-initdb.d/001-init.up.sql
+    networks:
+      - shortener_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - with-postgres
+
+  # Migrations
+  migrate:
+    image: migrate/migrate:v4.16.2
+    container_name: shortener_migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_NAME}?sslmode=${POSTGRES_SSLMODE}",
+      "up"
+    ]
+    networks:
+      - shortener_network
+    profiles:
+      - with-postgres
+
+  # Shortener API
+  shortener:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shortener
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_HOST: ${SERVER_HOST}
+      SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
+      SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
+      SONYFLAKE_START_TIME: ${SONYFLAKE_START_TIME}
+      SONYFLAKE_SEQUENCE_BITS: ${SONYFLAKE_SEQUENCE_BITS}
+      POSTGRES_USE_IN_MEMORY: ${DB_USE_IN_MEMORY}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_NAME: ${POSTGRES_NAME}
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    networks:
+      - shortener_network
+
+volumes:
+  shortener_postgres_data:
+
+networks:
+  shortener_network:
+    driver: bridge
