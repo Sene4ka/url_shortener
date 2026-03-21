@@ -68,7 +68,7 @@ func validateURL(rawURL string) error {
 		return util.ErrEmptyURL
 	}
 
-	u, err := url.Parse(rawURL)
+	u, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return util.ErrInvalidURL
 	}

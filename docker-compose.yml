@@ -65,6 +65,8 @@ services:
       POSTGRES_SSLMODE: ${POSTGRES_SSLMODE}
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+    # sadly cant use depends_on: postgres: condition: service_healthy
+    # because they are not always on with profiles: -with-postgres
     networks:
       - shortener_network
 

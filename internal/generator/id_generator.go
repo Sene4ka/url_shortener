@@ -16,7 +16,8 @@ func NewIdGenerator(startTime time.Time, sequenceBits uint64) (*IdGenerator, err
 		fixed 4 bits of machineId (last of int64) to ignore as fewer bits as possible
 		we need 59 bits for base62 to return <= 10 symbols, but default is 63 with no sign
 		can do this because we do not need a distributed uniqueness guarantee for now
-		if needed later we need to change this, fine variant is to ignore 4 sequence bits
+		if needed later we need to change this, fine variant is to ignore 4 sequence bits instead
+		this will lower available ids per ms, but will be compensated by distributed system nature and routing
 	*/
 	st := sonyflake.Settings{
 		BitsSequence:  int(sequenceBits),
@@ -44,7 +45,7 @@ func (g *IdGenerator) GenerateId() (string, error) {
 	}
 
 	shortId := id >> 4 // reduce bits to 59, so base62 always returns <= 10 symbols string
-	base62 := encodeBase62(shortId)
+	base62 := encodeBase63(shortId)
 
 	builder := strings.Builder{}
 	builder.Grow(10)
@@ -56,17 +57,17 @@ func (g *IdGenerator) GenerateId() (string, error) {
 	return builder.String(), nil
 }
 
-const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 
-func encodeBase62(n int64) string {
+func encodeBase63(n int64) string {
 	if n == 0 {
 		return string(alphabet[0])
 	}
 
 	var result []byte
 	for n > 0 {
-		result = append(result, alphabet[n%62])
-		n /= 62
+		result = append(result, alphabet[n%63])
+		n /= 63
 	}
 
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
