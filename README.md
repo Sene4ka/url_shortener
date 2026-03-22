@@ -21,8 +21,9 @@ Simple url-shortener api realisation, written in Golang
 docker pull s3ne4ka/shortener:latest
 
 # 3. Start container changing env variables and exposed ports if needed
-# full env variables list with their default values you can see in .env.example
-docker run -d -p 8080:8080 -e DB_USE_IN_MEMORY=true s3ne4ka/shortener:latest # example of changing env var and exposed ports
+# Full env variables list with their default values you can see in .env.example
+# Example of changing env var and exposed ports:
+docker run -d -p 8080:8080 -e DB_USE_IN_MEMORY=true s3ne4ka/shortener:latest 
 ```
 
 ### Manual Build and Run
