@@ -111,39 +111,85 @@ jobs:
           retention-days: 0
 
   build-docker:
-    name: Build and Push Docker Image
+    name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [test, lint, format]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-  
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build Docker image
+        run: docker build -t shortener:latest .
+
       - name: Save Docker image as tar
-        run: |
-          docker save shortener:latest -o shortener-image.tar
+        run: docker save shortener:latest -o shortener-image.tar
 
       - name: Upload Docker image artifact
         uses: actions/upload-artifact@v4
         with:
           name: shortener-image-${{ github.sha }}
           path: shortener-image.tar
-          retention-days: 0
-  
+          retention-days: 1
+
+  e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.1'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shortener-image-${{ github.sha }}
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/shortener-image.tar
+
+      - name: Run e2e tests
+        run: go test -v -tags=e2e ./tests/e2e/...
+
+  push-docker:
+    name: Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: [e2e]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shortener-image-${{ github.sha }}
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/shortener-image.tar
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-  
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/shortener:latest
-            ${{ secrets.DOCKER_USERNAME }}/shortener:${{ github.sha }}
+
+      - name: Tag and push image
+        run: |
+          docker tag shortener:latest ${{ secrets.DOCKER_USERNAME }}/shortener:latest
+          docker tag shortener:latest ${{ secrets.DOCKER_USERNAME }}/shortener:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/shortener:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/shortener:${{ github.sha }}
