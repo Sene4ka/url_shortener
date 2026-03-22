@@ -163,8 +163,8 @@ jobs:
           name: shortener-image-${{ github.sha }}
           path: /tmp
 
-      - name: Load Docker image
-        run: docker load -i /tmp/shortener-image.tar
+      - name: Build Docker image
+        run: docker build -t url_shortener-shortener:latest .
 
       - name: Run e2e tests
         run: go test -v -tags=e2e ./tests/e2e/...
