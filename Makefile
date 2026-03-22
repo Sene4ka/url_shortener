@@ -98,11 +98,11 @@ deps:
 # Help
 help:
 	@echo "Available targets:"
-	@echo "  make build        - Build the binary locally"
+	@echo "  make build        - Build the binary"
 	@echo "  make docker-build - Build the Docker image"
 	@echo "  make docker-up    - Start service"
 	@echo "  make docker-down  - Stop all containers"
-	@echo "  make logs         - View container logs"
+	@echo "  make logs         - View compose logs"
 	@echo "  make test         - Run unit tests"
 	@echo "  make test-e2e     - Run e2e tests"
 	@echo "  make clean        - Remove build artifacts"
