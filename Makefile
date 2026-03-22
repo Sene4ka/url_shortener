@@ -1,4 +1,4 @@
-.PHONY: all build build docker-build docker-up docker-down logs test clean deps help
+.PHONY: all build docker-build docker-up docker-down logs test test-e2e clean deps help
 
 # Variables
 PROJECT_NAME=shortener
@@ -77,6 +77,10 @@ test:
 	@echo "Running tests..."
 	@go test -v ./... --cover
 
+test-e2e: docker-build
+	@echo "Running e2e tests..."
+	@go test -v -tags=e2e ./tests/e2e/...
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -100,6 +104,7 @@ help:
 	@echo "  make docker-down  - Stop all containers"
 	@echo "  make logs         - View container logs"
 	@echo "  make test         - Run unit tests"
+	@echo "  make test-e2e     - Run e2e tests"
 	@echo "  make clean        - Remove build artifacts"
 	@echo "  make deps         - Download dependencies"
 	@echo "  make help         - Show this help"

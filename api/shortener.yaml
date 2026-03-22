@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: URL Shortener API
+  description: API для сокращения ссылок.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер разработки
+
+paths:
+  /health:
+    get:
+      summary: Проверка здоровья сервиса
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Сервис работает
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /shortener/shorten/:
+    post:
+      summary: Создать короткую ссылку
+      operationId: createLink
+      tags:
+        - Links
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UrlInput'
+      responses:
+        '200':
+          description: Ссылка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '400':
+          description: Некорректный URL (пустой, неверный формат, неподдерживаемая схема, отсутствует хост, слишком длинный)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Метод не разрешён (только POST)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Конфликт идентификаторов (сгенерированный ID уже существует)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /shortener/url/{id}:
+    get:
+      summary: Получить оригинальную ссылку по ID
+      operationId: getLinkById
+      tags:
+        - Links
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9A-Za-z_]{10}$'
+            example: aBc123_DeF
+          description: Идентификатор короткой ссылки (10 символов, разрешены цифры, латиница, подчёркивание)
+      responses:
+        '200':
+          description: Ссылка найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '400':
+          description: Отсутствует ID в пути
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ссылка с указанным ID не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Метод не разрешён (только GET)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UrlInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://example.com
+    Link:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^[0-9A-Za-z_]{10}$'
+          example: aBc123_DeF
+        url:
+          type: string
+          format: uri
+          example: https://example.com
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: string
+          description: Текст ошибки
+          example: "url field is empty"
