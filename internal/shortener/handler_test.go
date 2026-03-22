@@ -91,7 +91,8 @@ func TestLinkHandler_CreateLink_MethodNotAllowed(t *testing.T) {
 
 			assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
 			var errResp map[string]string
-			json.Unmarshal(rr.Body.Bytes(), &errResp)
+			err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+			assert.NoError(t, err)
 			assert.Equal(t, "method not allowed", errResp["errors"])
 		})
 	}
@@ -106,7 +107,8 @@ func TestLinkHandler_CreateLink_InvalidJSON(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	var errResp map[string]string
-	json.Unmarshal(rr.Body.Bytes(), &errResp)
+	err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+	assert.NoError(t, err)
 	assert.Equal(t, "invalid request body", errResp["errors"])
 }
 
@@ -141,7 +143,8 @@ func TestLinkHandler_CreateLink_ValidationErrors(t *testing.T) {
 
 			assert.Equal(t, tc.expectedCode, rr.Code)
 			var errResp map[string]string
-			json.Unmarshal(rr.Body.Bytes(), &errResp)
+			err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.err.Error(), errResp["errors"])
 		})
 	}
@@ -184,7 +187,8 @@ func TestLinkHandler_GetById_NotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 	var errResp map[string]string
-	json.Unmarshal(rr.Body.Bytes(), &errResp)
+	err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+	assert.NoError(t, err)
 	assert.Equal(t, util.ErrLinkNotFound.Error(), errResp["errors"])
 }
 
@@ -197,7 +201,8 @@ func TestLinkHandler_GetById_MissingID(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	var errResp map[string]string
-	json.Unmarshal(rr.Body.Bytes(), &errResp)
+	err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+	assert.NoError(t, err)
 	assert.Equal(t, "missing link id", errResp["errors"])
 }
 
@@ -213,7 +218,8 @@ func TestLinkHandler_GetById_MethodNotAllowed(t *testing.T) {
 
 			assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
 			var errResp map[string]string
-			json.Unmarshal(rr.Body.Bytes(), &errResp)
+			err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+			assert.NoError(t, err)
 			assert.Equal(t, "method not allowed", errResp["errors"])
 		})
 	}
@@ -233,6 +239,7 @@ func TestLinkHandler_GetById_InternalError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	var errResp map[string]string
-	json.Unmarshal(rr.Body.Bytes(), &errResp)
+	err := json.Unmarshal(rr.Body.Bytes(), &errResp)
+	assert.NoError(t, err)
 	assert.Equal(t, "db connection error", errResp["errors"])
 }
