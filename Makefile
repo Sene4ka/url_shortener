@@ -86,7 +86,7 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf bin/
 	@go clean
-	@echo "Clean complete."
+	@echo "Cleaning complete."
 
 # Download dependencies
 deps:
