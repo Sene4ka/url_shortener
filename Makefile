@@ -51,7 +51,7 @@ build:
 	@echo "Build complete."
 
 # Build Docker image
-docker-build: build
+docker-build:
 	@echo "Building Docker images..."
 	@$(DOCKER_COMPOSE) build --build-arg SERVER_PORT=$(SERVER_PORT)
 	@echo "Docker images built."
