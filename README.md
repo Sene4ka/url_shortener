@@ -14,13 +14,10 @@ Simple url-shortener api realisation, written in Golang
 ### Pulling from Docker Hub
 
 ```bash
-# 1. Install Docker
-# Process changes depending on your system and packet manager
-
-# 2. Pull image from Docker Hub
+# 1. Pull image from Docker Hub
 docker pull s3ne4ka/shortener:latest
 
-# 3. Start container changing env variables and exposed ports if needed
+# 2. Start container changing env variables and exposed ports if needed
 # Full env variables list with their default values you can see in .env.example
 # Example of changing env var and exposed ports:
 docker run -d -p 8080:8080 -e DB_USE_IN_MEMORY=true s3ne4ka/shortener:latest 
