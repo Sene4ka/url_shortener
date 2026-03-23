@@ -21,7 +21,7 @@ else
     READ_PORT_ENV_CMD = grep -E '^SERVER_PORT=' $(ENV_FILE) | cut -d '=' -f2
 endif
 
-# Acquire value and set default true
+# Acquire value and set default
 DB_USE_IN_MEMORY := $(shell $(READ_DB_ENV_CMD))
 
 ifeq ($(DB_USE_IN_MEMORY),)
@@ -35,6 +35,7 @@ else
     DOCKER_PROFILE := --profile with-postgres
 endif
 
+# Acquire value and set default
 SERVER_PORT := $(shell $(READ_PORT_ENV_CMD))
 
 ifeq ($(SERVER_PORT),)
@@ -43,19 +44,19 @@ endif
 
 all: docker-up
 
-# Build project with in memory db
+# Build project
 build:
 	@echo "Building $(PROJECT_NAME)..."
 	@go build -o bin/$(PROJECT_NAME) ./cmd/shortener
 	@echo "Build complete."
 
-# Build Docker images
+# Build Docker image
 docker-build: build
 	@echo "Building Docker images..."
 	@$(DOCKER_COMPOSE) build --build-arg SERVER_PORT=$(SERVER_PORT)
 	@echo "Docker images built."
 
-# Start shortener service
+# Start Docker Compose
 docker-up: docker-build
 	@echo "Starting services with DB_USE_IN_MEMORY=$(DB_USE_IN_MEMORY)..."
 	@$(DOCKER_COMPOSE) $(DOCKER_PROFILE) up -d
